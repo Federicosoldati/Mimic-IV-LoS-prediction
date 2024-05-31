@@ -9,10 +9,10 @@ def preprocess_flat(flat):
 
     flat['gender'].replace({'M': 1, 'F': 0}, inplace=True)
 
-    cat_features = ['ethnicity', 'first_careunit', 'admission_location', 'insurance']
+    cat_features = ['race', 'first_careunit', 'admission_location', 'insurance']
     # get rid of any really uncommon values
     for f in cat_features:
-        too_rare = [value for value, count in flat[f].value_counts().iteritems() if count < 1000]
+        too_rare = [value for value, count in flat[f].value_counts().items() if count < 1000]
         flat.loc[flat[f].isin(too_rare), f] = 'misc'
 
     # convert the categorical features to one-hot

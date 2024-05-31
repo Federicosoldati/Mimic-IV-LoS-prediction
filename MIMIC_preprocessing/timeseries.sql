@@ -10,13 +10,13 @@ create materialized view ld_commonlabs as
     where l.valuenum is not null  -- stick to the numerical data
       -- epoch extracts the number of seconds since 1970-01-01 00:00:00-00, we want to extract measurements between
       -- admission and the end of the patients' stay
-      and (date_part('epoch', l.charttime) - date_part('epoch', la.intime))/(60*60*24) between -1 and la.los),
+      and (date_part('epoch', l.charttime) - date_part('epoch', la.intime))/(60*60*24) between -1 and 1),
   -- getting the average number of times each itemid appears in an icustay (filtering only those that are more than 2)
   avg_obs_per_stay as (
     select itemid, avg(count) as avg_obs
     from (select itemid, count(*) from labsstay group by itemid, stay_id) as obs_per_stay
     group by itemid
-    having avg(count) > 3)  -- we want the features to have at least 3 values entered for the average patient
+    having avg(count) > 2)  -- we want the features to have at least 3 values entered for the average patient
   select d.label, count(distinct labsstay.stay_id) as count, a.avg_obs
     from labsstay
     inner join d_labitems as d
@@ -43,7 +43,7 @@ create materialized view ld_timeserieslab as
       on la.hadm_id = l.hadm_id  -- only extract data for the cohort
     -- epoch extracts the number of seconds since 1970-01-01 00:00:00-00, we want to extract measurements between
     -- admission and the end of the patients' stay
-    where (date_part('epoch', l.charttime) - date_part('epoch', la.intime))/(60*60*24) between -1 and la.los
+    where (date_part('epoch', l.charttime) - date_part('epoch', la.intime))/(60*60*24) between -1 and 1
       and l.valuenum is not null;  -- filter out null values
 
 -- extract the most common chartevents and the corresponding counts of how many patients have values for those chartevents
@@ -58,13 +58,13 @@ create materialized view ld_commonchart as
         where ch.valuenum is not null  -- stick to the numerical data
           -- epoch extracts the number of seconds since 1970-01-01 00:00:00-00, we want to extract measurements between
           -- admission and the end of the patients' stay
-          and (date_part('epoch', ch.charttime) - date_part('epoch', la.intime))/(60*60*24) between -1 and la.los),
-  -- getting the average number of times each itemid appears in an icustay (filtering only those that are more than 5)
+          and (date_part('epoch', ch.charttime) - date_part('epoch', la.intime))/(60*60*24) between -1 and 1),
+  -- getting the average number of times each itemid appears in an icustay (filtering only those that are more than 3)
   avg_obs_per_stay as (
     select itemid, avg(count) as avg_obs
     from (select itemid, count(*) from chartstay group by itemid, stay_id) as obs_per_stay
     group by itemid
-    having avg(count) > 5)  -- we want the features to have at least 5 values entered for the average patient
+    having avg(count) > 3)  -- we want the features to have at least 3 values entered for the average patient
   select d.label, count(distinct chartstay.stay_id) as count, a.avg_obs
     from chartstay
     inner join d_items as d
@@ -89,5 +89,5 @@ create materialized view ld_timeseries as
       on cch.label = d.label  -- only include the common chart features
     inner join ld_labels as la
       on la.stay_id = ch.stay_id  -- only extract data for the cohort
-    where (date_part('epoch', ch.charttime) - date_part('epoch', la.intime))/(60*60*24) between -1 and la.los
+    where (date_part('epoch', ch.charttime) - date_part('epoch', la.intime))/(60*60*24) between -1 and 1
       and ch.valuenum is not null;  -- filter out null values

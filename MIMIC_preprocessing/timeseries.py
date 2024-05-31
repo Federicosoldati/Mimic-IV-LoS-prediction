@@ -37,8 +37,8 @@ def gen_timeseries_file(MIMIC_path, test=False):
         if col in timeseries_lab.columns or col in timeseries_lab.columns + ' (serum)':
             cols.append(col)
     # plus some others which don't quite match up based on strings
-    cols += ['WBC', 'HCO3 (serum)', 'Lactic Acid', 'PH (Arterial)', 'Arterial O2 pressure', 'Arterial CO2 Pressure',
-             'Arterial Base Excess', 'TCO2 (calc) Arterial', 'Ionized Calcium', 'BUN', 'Calcium non-ionized', 'Anion gap']
+    cols += ['PH (Arterial)', 'Arterial O2 pressure', 'Arterial CO2 Pressure',
+             'Arterial Base Excess', 'TCO2 (calc) Arterial', 'Ionized Calcium']
     for col in cols:
         print('\t' + col)
     timeseries.drop(columns=cols, inplace=True)
@@ -52,17 +52,14 @@ def gen_timeseries_file(MIMIC_path, test=False):
     print('==> Also removing some binary and less useful variables:')
     other = ['18 Gauge Dressing Occlusive', '18 Gauge placed in outside facility', '18 Gauge placed in the field',
              '20 Gauge Dressing Occlusive', '20 Gauge placed in outside facility', '20 Gauge placed in the field',
-             'Alarms On', 'Ambulatory aid', 'CAM-ICU MS Change', 'Eye Care', 'High risk (>51) interventions',
-             'History of falling (within 3 mnths)', 'IV/Saline lock', 'Mental status', 'Parameters Checked',
-             'ST Segment Monitoring On', 'Secondary diagnosis', 'Acuity Workload Question 1',
-             'Acuity Workload Question 2', 'Arterial Line Dressing Occlusive', 'Arterial Line Zero/Calibrate',
-             'Arterial Line placed in outside facility', 'Back Care', 'Cough/Deep Breath', 'Cuff Pressure',
-             'Gait/Transferring', 'Glucose (whole blood)', 'Goal Richmond-RAS Scale', 'Inspiratory Ratio',
-             'Inspiratory Time', 'Impaired Skin Odor #1', 'Braden Activity', 'Braden Friction/Shear', 'Braden Mobility',
+             'Alarms On','Parameters Checked',
+             'ST Segment Monitoring On', 'Arterial Line Dressing Occlusive',
+             'Arterial Line placed in outside facility', 'Back Care', 'Glucose (whole blood)', 'Goal Richmond-RAS Scale', 'Inspiratory Ratio',
+             'Inspiratory Time', 'Braden Activity', 'Braden Friction/Shear', 'Braden Mobility',
              'Braden Moisture', 'Braden Nutrition', 'Braden Sensory Perception', 'Multi Lumen placed in outside facility',
              'O2 Saturation Pulseoxymetry Alarm - High', 'Orientation', 'Orientation to Person',
              'Orientation to Place', 'Orientation to Time', 'Potassium (whole blood)', 'Skin Care',
-             'SpO2 Desat Limit', 'Subglottal Suctioning', 'Ventilator Tank #1', 'Ventilator Tank #2', 'Ventilator Type']
+             'Ventilator Type']
     for col in other:
         print('\t' + col)
     timeseries.drop(columns=other, inplace=True)
@@ -86,7 +83,7 @@ def gen_timeseries_file(MIMIC_path, test=False):
 
     for patient_chunk in gen_chunks:
 
-        merged = timeseries_lab.loc[patient_chunk].append(timeseries.loc[patient_chunk], sort=False)
+        merged = pd.concat([timeseries_lab.loc[patient_chunk], timeseries.loc[patient_chunk]], ignore_index=False)
 
         if i == size:  # fixed from first run
             # all if not all are not normally distributed
